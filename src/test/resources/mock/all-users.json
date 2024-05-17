@@ -1,0 +1,26 @@
+[
+  {
+    "id": "example-user-id-1",
+    "username": "login-1",
+    "name": "first-name-1",
+    "surname": "last_name-1"
+  },
+  {
+    "id": "example-user-id-2",
+    "username": "login-2",
+    "name": "first_name-2",
+    "surname": "last_name-2"
+  },
+  {
+    "id": "example-user-id-3",
+    "username": "login-3",
+    "name": "first-name-3",
+    "surname": "last_name-3"
+  },
+  {
+    "id": "example-user-id-4",
+    "username": "login-4",
+    "name": "first_name-4",
+    "surname": "last_name-4"
+  }
+]

@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  postgresdb:
+    image: postgres:14.4
+    ports:
+      - "4444:5432"
+    environment:
+      POSTGRES_DB: db1
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    restart: always
+
+  mysqldb:
+    image: mysql:8.0
+    ports:
+      - "5555:3306"
+    restart: always
+    environment:
+      MYSQL_DATABASE: db2
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpass
+      MYSQL_ROOT_PASSWORD: testpass

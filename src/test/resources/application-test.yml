@@ -1,0 +1,32 @@
+db-connection:
+  pool:
+    size: 5
+
+database-drivers:
+  drivers:
+    postgres: org.postgresql.Driver
+    mysql: com.mysql.cj.jdbc.Driver
+
+data-sources:
+  - name: data-base-1
+    strategy: postgres
+    url: jdbc:postgresql://localhost:4444/db1
+    table: users
+    user: testuser
+    password: testpass
+    mapping:
+      id: user_id
+      username: login
+      name: first_name
+      surname: last_name
+  - name: data-base-2
+    strategy: mysql
+    url: jdbc:mysql://localhost:5555/db2
+    table: user_table
+    user: testuser
+    password: testpass
+    mapping:
+      id: ldap_id
+      username: ldap_login
+      name: name
+      surname: surname
