@@ -1,0 +1,4 @@
+{
+  "status": "BAD_REQUEST",
+  "message": "Database round trip error. Database: data-base-1, table: users, query:SELECT user_id, login, first_name, last_name FROM users WHERE;"
+}

@@ -15,7 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-class UserControllerTest extends AbstractContainersWebTest {
+class UserControllerTest
+        extends AbstractContainersWebTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -27,6 +28,56 @@ class UserControllerTest extends AbstractContainersWebTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(getContent("mock/all-users.json"), true));
+    }
+
+    @Test
+    void shouldFindWithEqualsOperator() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/users/filter")
+                        .queryParam("where", "id=example-user-id-1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(getContent("mock/equal-operator-users.json"), true));
+    }
+
+    @Test
+    void shouldFindWithEqualsWithOROperators() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/users/filter")
+                        .queryParam("where", "id=example-user-id-1,OR,id=example-user-id-3")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(getContent("mock/equal-or-operator-users.json"), true));
+    }
+
+    @Test
+    void shouldFindWithEqualsWithANDOperators() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/users/filter")
+                        .queryParam("where", "id>=example-user-id-1,AND,username<=login-3")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(getContent("mock/equal-and-operator-users.json"), true));
+    }
+
+    @Test
+    void shouldFindWithLIKEOperator() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/users/filter")
+                        .queryParam("where", "id LIKE %user-id-1,OR,id LIKE %user-id-3")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(getContent("mock/like-operator-users.json"), true));
+    }
+
+    @Test
+    void shouldThrowExceptionOnWrongParameter() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/users/filter")
+                        .queryParam("where", "user-id")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(getContent("mock/wrong-parameter.json"), true));
     }
 
     private String getContent(String filePath) {

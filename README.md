@@ -18,6 +18,8 @@ The service can be easily adjusted to interact with any number of databases via 
 | Spring JDBC | ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white) |
 | Java 17 | ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white) |
 | Swagger | ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white) |
+| Maven | ![Apache Maven](https://img.shields.io/badge/Apache%20Maven-C71A36?style=for-the-badge&logo=Apache%20Maven&logoColor=white) |
+|Docker | ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) |
 
 ## Installation
 
@@ -83,6 +85,16 @@ mvn spring-boot:run
 ```http
 GET /users
 ```
+
+### Get Users applying filter
+
+```http
+GET /users/filter
+```
+
+#### Query Parameters
+
+- `where`: WHERE clause similar to WHERE Sql functional. Restricted to AND, OR, LIKE.
 
 ## API Documentation
 

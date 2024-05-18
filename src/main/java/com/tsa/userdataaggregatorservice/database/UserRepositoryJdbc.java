@@ -2,21 +2,23 @@ package com.tsa.userdataaggregatorservice.database;
 
 import com.tsa.userdataaggregatorservice.database.configuration.DatabaseProperties;
 import com.tsa.userdataaggregatorservice.database.configuration.DbContextHolder;
+import com.tsa.userdataaggregatorservice.exception.FetchDataException;
 import com.tsa.userdataaggregatorservice.domain.User;
 import com.tsa.userdataaggregatorservice.domain.UserDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 @Slf4j
 @Repository
 public class UserRepositoryJdbc implements UserDao {
+    private static final String EMPTY_FILTER = "";
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final List<DatabaseProperties> dbProperties;
     private final DbContextHolder dbContextHolder;
@@ -24,21 +26,40 @@ public class UserRepositoryJdbc implements UserDao {
 
     @Override
     public List<User> findAll() {
-        final ArrayList<User> users = new ArrayList<>();
+        return findAllFilter(EMPTY_FILTER);
+    }
 
-        dbProperties.forEach(property -> {
-            try {
-                dbContextHolder.setDatabaseKey(property.getName(), property.getStrategy());
-                String queryFindAll = queryGenerator.getFindAllQuery(property);
-                List<User> usersBatch = jdbcTemplate.query(queryFindAll, new UserRowMapper(property.getMapping()));
-                users.addAll(usersBatch);
-            } catch (DataAccessException e) {
-                log.error("Database round trip error. Database: {}, table: {}", property.getName(), property.getTable(), e);
-            } finally {
-                dbContextHolder.removeDatabaseKey();
+    @Override
+    public List<User> findAllFilter(String filter) {
+        return dbProperties.stream()
+                .map(prop -> findGenericAllUser(
+                        prop,
+                        () -> queryGenerator.getFindAllQueryWithFilter(prop, filter))
+                )
+                .flatMap(List::stream)
+                .toList();
+    }
+
+    private List<User> findGenericAllUser(DatabaseProperties prop, Supplier<QueryHolder> generator) {
+
+        QueryHolder queryHolder = generator.get();
+        try {
+            dbContextHolder.setDatabaseKey(prop.getName(), prop.getStrategy());
+            if (Objects.nonNull(queryHolder.getParamMap())) {
+                return jdbcTemplate.query(queryHolder.getQuery(), queryHolder.getParamMap(), new UserRowMapper(prop.getMapping()));
             }
-        });
-
-        return users;
+            return jdbcTemplate.query(queryHolder.getQuery(), new UserRowMapper(prop.getMapping()));
+        } catch (Exception exception) {
+            log.error("Database round trip error. Database: {}, table: {}, query:{}",
+                    prop.getName(), prop.getTable(), queryHolder.getQuery(), exception);
+            throw new FetchDataException(
+                    "Database round trip error. Database: %s, table: %s, query:%s".formatted(
+                            prop.getName(), prop.getTable(), queryHolder.getQuery()
+                    ),
+                    exception
+            );
+        } finally {
+            dbContextHolder.removeDatabaseKey();
+        }
     }
 }

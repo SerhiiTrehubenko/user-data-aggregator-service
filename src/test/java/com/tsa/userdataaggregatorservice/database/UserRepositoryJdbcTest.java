@@ -9,8 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserRepositoryJdbcTest {
@@ -20,6 +19,9 @@ class UserRepositoryJdbcTest {
         String nameDb = "db-1";
         String strategy = "postgres";
         String findAllQuery = "SELECT * FROM users;";
+        final String emptyFilter = "";
+        QueryHolder queryHolder = new QueryHolder();
+        queryHolder.setQuery(findAllQuery);
 
         List<User> expectedUsers = List.of(User.builder().id("1").name("Serhii").build());
 
@@ -34,6 +36,7 @@ class UserRepositoryJdbcTest {
 
         UserQueryGenerator queryGenerator = mock(UserQueryGenerator.class);
         when(queryGenerator.getFindAllQuery(propertiesDb)).thenReturn(findAllQuery);
+        when(queryGenerator.getFindAllQueryWithFilter(propertiesDb, emptyFilter)).thenReturn(queryHolder);
 
         NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
         when(jdbcTemplate.query(eq(findAllQuery), any(UserRowMapper.class))).thenReturn(expectedUsers);
@@ -47,7 +50,7 @@ class UserRepositoryJdbcTest {
         verify(propertiesDb).getName();
         verify(propertiesDb).getStrategy();
         verify(dbContextHolder).setDatabaseKey(nameDb, strategy);
-        verify(queryGenerator, only()).getFindAllQuery(propertiesDb);
+        verify(queryGenerator).getFindAllQueryWithFilter(eq(propertiesDb), anyString());
         verify(jdbcTemplate, only()).query(eq(findAllQuery), any(UserRowMapper.class));
         verify(dbContextHolder).removeDatabaseKey();
     }
