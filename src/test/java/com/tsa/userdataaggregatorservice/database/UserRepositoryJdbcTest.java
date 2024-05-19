@@ -1,13 +1,13 @@
 package com.tsa.userdataaggregatorservice.database;
 
 import com.tsa.userdataaggregatorservice.database.configuration.DatabaseProperties;
-import com.tsa.userdataaggregatorservice.database.configuration.DbContextHolder;
 import com.tsa.userdataaggregatorservice.domain.User;
 import com.tsa.userdataaggregatorservice.domain.UserDao;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -31,9 +31,6 @@ class UserRepositoryJdbcTest {
 
         List<DatabaseProperties> allProperties = List.of(propertiesDb);
 
-        DbContextHolder dbContextHolder = mock(DbContextHolder.class);
-        when(dbContextHolder.getDatabaseKey()).thenReturn(nameDb);
-
         UserQueryGenerator queryGenerator = mock(UserQueryGenerator.class);
         when(queryGenerator.getFindAllQuery(propertiesDb)).thenReturn(findAllQuery);
         when(queryGenerator.getFindAllQueryWithFilter(propertiesDb, emptyFilter)).thenReturn(queryHolder);
@@ -41,17 +38,14 @@ class UserRepositoryJdbcTest {
         NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
         when(jdbcTemplate.query(eq(findAllQuery), any(UserRowMapper.class))).thenReturn(expectedUsers);
 
-        UserDao userRepoSut = new UserRepositoryJdbc(jdbcTemplate, allProperties, dbContextHolder, queryGenerator);
+        UserDao userRepoSut = new UserRepositoryJdbc(allProperties, queryGenerator, Map.of(nameDb, jdbcTemplate));
 
         List<User> users = userRepoSut.findAll();
         assertNotNull(users);
         assertEquals(1, users.size());
 
         verify(propertiesDb).getName();
-        verify(propertiesDb).getStrategy();
-        verify(dbContextHolder).setDatabaseKey(nameDb, strategy);
         verify(queryGenerator).getFindAllQueryWithFilter(eq(propertiesDb), anyString());
         verify(jdbcTemplate, only()).query(eq(findAllQuery), any(UserRowMapper.class));
-        verify(dbContextHolder).removeDatabaseKey();
     }
 }

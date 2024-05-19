@@ -7,12 +7,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -33,27 +32,13 @@ public class DataSourceConfig {
         return new ArrayList<>();
     }
 
-    @Bean
-    public DbContextHolder dbContextHolder() {
-        return new DbContextHolder();
-    }
-
-    @Bean
-    public DataSource dataSource() {
-        DatabaseRouting routing = new DatabaseRouting(dbContextHolder());
-        final Map<Object, Object> holderFixture = this.databasesHolder()
+    @Bean("mapTemplates")
+    @Primary
+    public Map<String, NamedParameterJdbcTemplate> jdbcTemplates() {
+        return databasesHolder()
                 .entrySet()
                 .stream()
-                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        routing.setDefaultTargetDataSource(
-                holderFixture.values().stream()
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("Has not been found any DataSource")));
-        routing.setTargetDataSources(holderFixture);
-
-        return routing;
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> new NamedParameterJdbcTemplate(entry.getValue())));
     }
 
     @Bean("dataSources")
